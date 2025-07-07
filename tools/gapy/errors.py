@@ -18,7 +18,7 @@
 # Authors: Germain Haugou, GreenWaves Technologies (germain.haugou@greenwaves-technologies.com)
 #
 
-import common
+# import common
 
 
 class FatalError(RuntimeError):
@@ -35,7 +35,7 @@ class FatalError(RuntimeError):
 		Return a fatal error object that appends the hex values of
 		'result' as a string formatted argument.
 		"""
-		message += " (result was %s)" % common.hexify(result)
+		message += " (result was %s)" % result
 		return FatalError(message)
 
 

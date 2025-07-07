@@ -27,13 +27,14 @@ import traces
 import json_tools as js
 
 import importlib
-from tools.runner.runner import Runner
+from runner.default_runner import Runner
 
 gapyDir = os.path.dirname(os.path.realpath(__file__))
 targetsDir = os.path.join(gapyDir, 'targets')
 configsDir = os.path.join(gapyDir, 'configs')
 gapyJsonPath = [targetsDir, configsDir]
 openocdDir = os.path.join(gapyDir, 'openocd')
+
 
 
 def get_platforms():
@@ -77,9 +78,10 @@ def appendCommonOptions(parser):
                         help = 'Gives the python script of the target configuration.')
     
     #
-    # Plateforms
+    # Platforms
     #
     platforms = get_platforms()
+
     parser.add_argument('--platform',
                         dest = 'platform',
                         default = None,
@@ -151,20 +153,24 @@ def importConfig(parser):
     parser.parse_known_args(argsCli)
     args, _ = parser.parse_known_args(argsCli)
 
-    if args.py_target is not None:
-        class_name, module_name = args.py_target.split('@')
+    # if args.py_target is not None:
+    #     # class_name, module_name = args.py_target.split('@')
+    #     # print ("Getting class name", class_name)
+    #     # print ("Getting module name", module_name)
 
-        module = importlib.import_module(module_name)
+    #     # module = importlib.import_module(module_name)
 
-        if not callable(getattr(module, class_name, None)):
-                    raise RuntimeError('Unable to find target class (method: %s, filepath: %s)' % (class_name, module_name))
+    #     # if not callable(getattr(module, class_name, None)):
+    #     #             raise RuntimeError('Unable to find target class (method: %s, filepath: %s)' % (class_name, module_name))
 
-        runner = Runner(None, 'top', options=args.config_items, target_class=getattr(module, class_name, None))
+    #     runner = Runner(None, 'top', options=args.config_items, target_class=getattr(module, class_name, None))
         
-        return (js.import_config(runner.get_config()), runner)
+    #     return (js.import_config(runner.get_config()), runner)
 
-    elif args.target is not None:
-        jsonPath = os.path.join(targetsDir, args.target + '.json')
+    if args.target is not None:
+        # jsonPath = os.path.join(targetsDir, args.target + '.json')
+        jsonPath = os.path.join(targetsDir, 'pulp' + '.json')
+        print ("jsonPath is: ", jsonPath)
         ini_configs = args.ini_configs
 
         if os.environ.get('GAPY_CONFIGS_INI') is not None:
