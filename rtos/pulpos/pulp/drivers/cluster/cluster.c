@@ -62,6 +62,7 @@ static void pos_init_cluster_data(int cid, struct pi_cluster_conf *conf)
     CL_TRACE(POS_LOG_INFO, "L1 preloading data copy from L2 to L1 (L2 start: 0x%x, L2 end: 0x%x, L1 start: 0x%x)\n", (int)l1_preload_start_inL2, (int)l1_preload_start_inL2 + (int)l1_preload_size, (int)l1_preload_start);
     for (; l1_preload_size > 0; l1_preload_size-=4, l1_preload_start++, l1_preload_start_inL2++) {
         *l1_preload_start = *l1_preload_start_inL2;
+        CL_TRACE(POS_LOG_INFO, "L1 preload size is 0x%x \n", l1_preload_size);
     }
 
     int nb_cluster = pos_nb_cluster();
