@@ -1,0 +1,17 @@
+APP = idma_3d
+APP_SRCS += idma_3d.c
+APP_CFLAGS += -O3 -g
+
+ifdef DEBUG_TEST
+PULP_CFLAGS += -DDEBUG_TEST
+endif
+
+ifdef MULTI_CORE_S
+PULP_CFLAGS += -DMULTI_CORE_S
+endif
+
+ifdef MULTI_CORE_P
+PULP_CFLAGS += -DMULTI_CORE_P
+endif
+
+include $(RULES_DIR)/pmsis_rules.mk
