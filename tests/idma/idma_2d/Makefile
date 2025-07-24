@@ -14,4 +14,11 @@ ifdef MULTI_CORE_P
 PULP_CFLAGS += -DMULTI_CORE_P
 endif
 
+ifdef QUICK_MODE
+PULP_CFLAGS += -DQUICK_MODE
+endif
+
 include $(RULES_DIR)/pmsis_rules.mk
+
+stimuli:
+	python gen_stimuli_idma_2d.py

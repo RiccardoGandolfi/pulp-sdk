@@ -1,8 +1,8 @@
 #include "idma_2d.h"
 
-#define NB_TRANSFERS 7
 #define TOT_SIZE 8 * CORE_SPACE
 #define NB_TASKS 1
+#define NB_PRESETS 7
 
 int glob_errors = 0;
 uint32_t l1_addr[8] = {0};
@@ -82,15 +82,27 @@ int idma_2D (TransferParameters transfer, int core_id, int ext2loc, int loc2loc)
 
 void idma_task() {
     PRINTF ("Core[%d] has entered idma_task \n", pi_core_id());
+    TransferParameters transfer;
+    uint32_t transfers_num;
+    #ifdef QUICK_MODE
+    transfers_num = NB_PRESETS;
+    #else
+    transfers_num = NB_TRANSFERS;
+    #endif
     
-    for (int k = 0; k < NB_TRANSFERS; k ++) {
-        print_transfer(idma_presets[k]);
+    for (int k = 0; k < transfers_num; k ++) {
+        #ifdef QUICK_MODE
+        transfer = idma_presets[k];
+        #else
+        transfer = transfer_params[k];
+        #endif
+        print_transfer(transfer);
         // L1 -> L2
-        glob_errors += idma_2D(idma_presets[k], pi_core_id(), 0, 0);
+        glob_errors += idma_2D(transfer, pi_core_id(), 0, 0);
         // L2 -> L1
-        glob_errors += idma_2D(idma_presets[k], pi_core_id(), 1, 0);
+        glob_errors += idma_2D(transfer, pi_core_id(), 1, 0);
         // L1 -> L1
-        glob_errors += idma_2D(idma_presets[k], pi_core_id(), 0, 1);
+        glob_errors += idma_2D(transfer, pi_core_id(), 0, 1);
     }
 }
 

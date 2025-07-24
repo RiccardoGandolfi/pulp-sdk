@@ -3,6 +3,7 @@
 
 #include "idma_parameters.h"
 #include "idma_presets.h"
+#include "idma_defines.h"
 
 #ifndef _DMA_FRONTEND_REG_DEFS_
 #define _DMA_FRONTEND_REG_DEFS_
