@@ -52,6 +52,8 @@
 #define ARCHI_HAS_L1_ALIAS             1
 #define ARCHI_HAS_L2_ALIAS             1
 
+#define ARCHI_HAS_DMA_DEMUX 1
+
 
 
 /*
