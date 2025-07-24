@@ -1,9 +1,8 @@
 #include "idma_1d.h"
 
-#define NB_TRANSFERS 13
 #define TOT_SIZE 8 * CORE_SPACE
 #define NB_TASKS 1
-
+#define NB_PRESETS 13
 int glob_errors = 0;
 uint32_t l1_addr[8] = {0};
 uint32_t l2_addr[8] = {0};
@@ -58,15 +57,26 @@ int idma_1D (uint32_t size, int core_id, int ext2loc, int loc2loc) {
 
 void idma_task() {
     PRINTF ("Core[%d] has entered idma_task \n", pi_core_id());
-    
-    for (int k = 0; k < NB_TRANSFERS; k ++) {
-        PRINTF ("Transfer %d with size %d \n", k, idma_presets[k]);
+    uint32_t size;
+    uint32_t transfers_num;
+    #ifdef QUICK_MODE
+    transfers_num = NB_PRESETS;
+    #else
+    transfers_num = NB_TRANSFERS;
+    #endif
+    for (int k = 0; k < transfers_num; k ++) {
+        #ifdef QUICK_MODE
+        size = idma_presets[k];
+        #else
+        size = sizes[k];
+        #endif
+        PRINTF ("Transfer %d with size %d \n", k, size);
         // L1 -> L2
-        glob_errors += idma_1D(idma_presets[k], pi_core_id(), 0, 0);
+        glob_errors += idma_1D(size, pi_core_id(), 0, 0);
         // L2 -> L1
-        glob_errors += idma_1D(idma_presets[k], pi_core_id(), 1, 0);
+        glob_errors += idma_1D(size, pi_core_id(), 1, 0);
         // L1 -> L1
-        glob_errors += idma_1D(idma_presets[k], pi_core_id(), 0, 1);
+        glob_errors += idma_1D(size, pi_core_id(), 0, 1);
     }
 }
 

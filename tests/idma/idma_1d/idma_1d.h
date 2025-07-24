@@ -2,6 +2,8 @@
 #include "stdio.h"
 
 #include "idma_presets.h"
+#include "idma_defines.h"
+#include "idma_parameters.h"
 
 #ifndef _DMA_FRONTEND_REG_DEFS_
 #define _DMA_FRONTEND_REG_DEFS_
