@@ -18,6 +18,19 @@ typedef enum {
 
 typedef unsigned int dma_ext_t;
 
+typedef struct {
+  unsigned int src;
+  unsigned int dst;
+  unsigned int size;
+  unsigned int length;
+  unsigned int src_stride_2d;
+  unsigned int dst_stride_2d;
+  unsigned int src_stride_3d;
+  unsigned int dst_stride_3d;
+  unsigned int num_reps_2d;
+  unsigned int num_reps_3d;
+} iDMA_transfer;
+
 #define IDMA_DEFAULT_CONFIG 0x0
 #define IDMA_DEFAULT_CONFIG_L1TOL2 (IDMA_DEFAULT_CONFIG | (IDMA_PROT_OBI << IDMA_REG32_3D_CONF_SRC_PROTOCOL_OFFSET) | (IDMA_PROT_AXI << IDMA_REG32_3D_CONF_DST_PROTOCOL_OFFSET))
 #define IDMA_DEFAULT_CONFIG_L2TOL1 (IDMA_DEFAULT_CONFIG | (IDMA_PROT_AXI << IDMA_REG32_3D_CONF_SRC_PROTOCOL_OFFSET) | (IDMA_PROT_OBI << IDMA_REG32_3D_CONF_DST_PROTOCOL_OFFSET))
@@ -44,9 +57,9 @@ typedef unsigned int dma_ext_t;
  \return       The identifier of the transfer. This can be used with plp_dma_wait to wait for the completion of this transfer.
 */
 
-static inline int pulp_cl_idma_L1ToL2(unsigned int src, unsigned int dst, unsigned short size);
-static inline int pulp_cl_idma_L2ToL1(unsigned int src, unsigned int dst, unsigned short size);
-static inline int pulp_cl_idma_L1ToL1(unsigned int src, unsigned int dst, unsigned short size);
+static inline int pulp_cl_idma_L1ToL2(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L2ToL1(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L1ToL1(iDMA_transfer transfer);
 
 // 2D Transfers
 /** 2-dimensional transfer with event-based completion.
@@ -61,9 +74,9 @@ static inline int pulp_cl_idma_L1ToL1(unsigned int src, unsigned int dst, unsign
   \return         The identifier of the transfer. This can be used with plp_dma_wait to wait for the completion of this transfer.
   */
 
-static inline int pulp_cl_idma_L1ToL2_2d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps);
-static inline int pulp_cl_idma_L2ToL1_2d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps);
-static inline int pulp_cl_idma_L1ToL1_2d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps);
+static inline int pulp_cl_idma_L1ToL2_2d(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L2ToL1_2d(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L1ToL1_2d(iDMA_transfer transfer);
 
 // 3D Transfers
 /** 3-dimensional transfer with event-based completion.
@@ -81,9 +94,9 @@ static inline int pulp_cl_idma_L1ToL1_2d(unsigned int src, unsigned int dst, uns
   \return         The identifier of the transfer. This can be used with plp_dma_wait to wait for the completion of this transfer.
   */
 
-static inline int pulp_cl_idma_L1ToL2_3d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps, unsigned int src_stride_3d, unsigned int dst_stride_3d, unsigned int num_reps_3d);
-static inline int pulp_cl_idma_L2ToL1_3d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps, unsigned int src_stride_3d, unsigned int dst_stride_3d, unsigned int num_reps_3d);
-static inline int pulp_cl_idma_L1ToL1_3d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps, unsigned int src_stride_3d, unsigned int dst_stride_3d, unsigned int num_reps_3d);
+static inline int pulp_cl_idma_L1ToL2_3d(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L2ToL1_3d(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L1ToL1_3d(iDMA_transfer transfer);
 
 /** DMA barrier.
  * This blocks the core until no transfer is on-going in the DMA.
@@ -155,12 +168,12 @@ static inline unsigned int plp_cl_dma_status_toL2();
 
 // 1D TRANSFERS
 
-static inline int pulp_cl_idma_L1ToL2(unsigned int src, unsigned int dst, unsigned short size) {
+static inline int pulp_cl_idma_L1ToL2(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL2;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
 
   asm volatile("" : : : "memory");
@@ -170,12 +183,12 @@ static inline int pulp_cl_idma_L1ToL2(unsigned int src, unsigned int dst, unsign
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L2ToL1(unsigned int src, unsigned int dst, unsigned short size) {
+static inline int pulp_cl_idma_L2ToL1(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L2TOL1;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
 
   asm volatile("" : : : "memory");
@@ -185,12 +198,12 @@ static inline int pulp_cl_idma_L2ToL1(unsigned int src, unsigned int dst, unsign
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L1ToL1(unsigned int src, unsigned int dst, unsigned short size) {
+static inline int pulp_cl_idma_L1ToL1(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL1;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
 
   asm volatile("" : : : "memory");
@@ -202,48 +215,48 @@ static inline int pulp_cl_idma_L1ToL1(unsigned int src, unsigned int dst, unsign
 
 // 2D TRANSFERS
 
-static inline int pulp_cl_idma_L1ToL2_2d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps) {
+static inline int pulp_cl_idma_L1ToL2_2d(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL2_2D;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
-  DMA_CL_WRITE(src_stride, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_2d, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_2d, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
 
   asm volatile("" : : : "memory");
   dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_0_REG_OFFSET);
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L2ToL1_2d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps) {
+static inline int pulp_cl_idma_L2ToL1_2d(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L2TOL1_2D;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
-  DMA_CL_WRITE(src_stride, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_2d, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_2d, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
 
   asm volatile("" : : : "memory");
   dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_1_REG_OFFSET);
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L1ToL1_2d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps) {
+static inline int pulp_cl_idma_L1ToL1_2d(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL1_2D;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
-  DMA_CL_WRITE(src_stride, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_2d, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_2d, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
 
   asm volatile("" : : : "memory");
   dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_1_REG_OFFSET);
@@ -252,57 +265,57 @@ static inline int pulp_cl_idma_L1ToL1_2d(unsigned int src, unsigned int dst, uns
 
 // 3D TRANSFERS
 
-static inline int pulp_cl_idma_L1ToL2_3d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps_2d, unsigned int src_stride_3d, unsigned int dst_stride_3d, unsigned int num_reps_3d) {
+static inline int pulp_cl_idma_L1ToL2_3d(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL2_3D;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
-  DMA_CL_WRITE(src_stride, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(src_stride_3d, IDMA_REG32_3D_SRC_STRIDE_3_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride_3d, IDMA_REG32_3D_DST_STRIDE_3_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps_3d, IDMA_REG32_3D_REPS_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_2d, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_2d, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_3d, IDMA_REG32_3D_SRC_STRIDE_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_3d, IDMA_REG32_3D_DST_STRIDE_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_3d, IDMA_REG32_3D_REPS_3_LOW_REG_OFFSET);
 
   asm volatile("" : : : "memory");
   dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_0_REG_OFFSET);
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L2ToL1_3d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps_2d, unsigned int src_stride_3d, unsigned int dst_stride_3d, unsigned int num_reps_3d) {
+static inline int pulp_cl_idma_L2ToL1_3d(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L2TOL1_3D;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
-  DMA_CL_WRITE(src_stride, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(src_stride_3d, IDMA_REG32_3D_SRC_STRIDE_3_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride_3d, IDMA_REG32_3D_DST_STRIDE_3_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps_3d, IDMA_REG32_3D_REPS_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_2d, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_2d, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_3d, IDMA_REG32_3D_SRC_STRIDE_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_3d, IDMA_REG32_3D_DST_STRIDE_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_3d, IDMA_REG32_3D_REPS_3_LOW_REG_OFFSET);
 
   asm volatile("" : : : "memory");
   dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_1_REG_OFFSET);
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L1ToL1_3d(unsigned int src, unsigned int dst, unsigned short size, unsigned int src_stride, unsigned int dst_stride, unsigned int num_reps_2d, unsigned int src_stride_3d, unsigned int dst_stride_3d, unsigned int num_reps_3d) {
+static inline int pulp_cl_idma_L1ToL1_3d(iDMA_transfer transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL1_3D;
-  DMA_CL_WRITE(src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
-  DMA_CL_WRITE(size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst, IDMA_REG32_3D_DST_ADDR_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.size, IDMA_REG32_3D_LENGTH_LOW_REG_OFFSET);
   DMA_CL_WRITE(cfg, IDMA_REG32_3D_CONF_REG_OFFSET);
-  DMA_CL_WRITE(src_stride, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(src_stride_3d, IDMA_REG32_3D_SRC_STRIDE_3_LOW_REG_OFFSET);
-  DMA_CL_WRITE(dst_stride_3d, IDMA_REG32_3D_DST_STRIDE_3_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
-  DMA_CL_WRITE(num_reps_3d, IDMA_REG32_3D_REPS_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_2d, IDMA_REG32_3D_SRC_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_2d, IDMA_REG32_3D_DST_STRIDE_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.src_stride_3d, IDMA_REG32_3D_SRC_STRIDE_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.dst_stride_3d, IDMA_REG32_3D_DST_STRIDE_3_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_2d, IDMA_REG32_3D_REPS_2_LOW_REG_OFFSET);
+  DMA_CL_WRITE(transfer.num_reps_3d, IDMA_REG32_3D_REPS_3_LOW_REG_OFFSET);
 
   asm volatile("" : : : "memory");
   dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_1_REG_OFFSET);
