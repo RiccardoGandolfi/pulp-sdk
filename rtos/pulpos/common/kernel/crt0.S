@@ -43,9 +43,6 @@ label0:
 
 #endif
 
-    li      t0, 0x2
-    csrrs   zero, mie, t0
-
 
 
     # Clear the bss segment
