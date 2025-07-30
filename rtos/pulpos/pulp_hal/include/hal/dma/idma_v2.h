@@ -29,7 +29,7 @@ typedef struct {
   unsigned int dst_stride_3d;
   unsigned int num_reps_2d;
   unsigned int num_reps_3d;
-} iDMA_transfer;
+} DMA_copy;
 
 #define IDMA_DEFAULT_CONFIG 0x0
 #define IDMA_DEFAULT_CONFIG_L1TOL2 (IDMA_DEFAULT_CONFIG | (IDMA_PROT_OBI << IDMA_REG32_3D_CONF_SRC_PROTOCOL_OFFSET) | (IDMA_PROT_AXI << IDMA_REG32_3D_CONF_DST_PROTOCOL_OFFSET))
@@ -57,9 +57,9 @@ typedef struct {
  \return       The identifier of the transfer. This can be used with plp_dma_wait to wait for the completion of this transfer.
 */
 
-static inline int pulp_cl_idma_L1ToL2(iDMA_transfer transfer);
-static inline int pulp_cl_idma_L2ToL1(iDMA_transfer transfer);
-static inline int pulp_cl_idma_L1ToL1(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L1ToL2(DMA_copy transfer);
+static inline int pulp_cl_idma_L2ToL1(DMA_copy transfer);
+static inline int pulp_cl_idma_L1ToL1(DMA_copy transfer);
 
 // 2D Transfers
 /** 2-dimensional transfer with event-based completion.
@@ -74,9 +74,9 @@ static inline int pulp_cl_idma_L1ToL1(iDMA_transfer transfer);
   \return         The identifier of the transfer. This can be used with plp_dma_wait to wait for the completion of this transfer.
   */
 
-static inline int pulp_cl_idma_L1ToL2_2d(iDMA_transfer transfer);
-static inline int pulp_cl_idma_L2ToL1_2d(iDMA_transfer transfer);
-static inline int pulp_cl_idma_L1ToL1_2d(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L1ToL2_2d(DMA_copy transfer);
+static inline int pulp_cl_idma_L2ToL1_2d(DMA_copy transfer);
+static inline int pulp_cl_idma_L1ToL1_2d(DMA_copy transfer);
 
 // 3D Transfers
 /** 3-dimensional transfer with event-based completion.
@@ -94,9 +94,9 @@ static inline int pulp_cl_idma_L1ToL1_2d(iDMA_transfer transfer);
   \return         The identifier of the transfer. This can be used with plp_dma_wait to wait for the completion of this transfer.
   */
 
-static inline int pulp_cl_idma_L1ToL2_3d(iDMA_transfer transfer);
-static inline int pulp_cl_idma_L2ToL1_3d(iDMA_transfer transfer);
-static inline int pulp_cl_idma_L1ToL1_3d(iDMA_transfer transfer);
+static inline int pulp_cl_idma_L1ToL2_3d(DMA_copy transfer);
+static inline int pulp_cl_idma_L2ToL1_3d(DMA_copy transfer);
+static inline int pulp_cl_idma_L1ToL1_3d(DMA_copy transfer);
 
 /** DMA barrier.
  * This blocks the core until no transfer is on-going in the DMA.
@@ -168,7 +168,7 @@ static inline unsigned int plp_cl_dma_status_toL2();
 
 // 1D TRANSFERS
 
-static inline int pulp_cl_idma_L1ToL2(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L1ToL2(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL2;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -183,7 +183,7 @@ static inline int pulp_cl_idma_L1ToL2(iDMA_transfer transfer) {
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L2ToL1(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L2ToL1(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L2TOL1;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -198,7 +198,7 @@ static inline int pulp_cl_idma_L2ToL1(iDMA_transfer transfer) {
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L1ToL1(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L1ToL1(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL1;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -215,7 +215,7 @@ static inline int pulp_cl_idma_L1ToL1(iDMA_transfer transfer) {
 
 // 2D TRANSFERS
 
-static inline int pulp_cl_idma_L1ToL2_2d(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L1ToL2_2d(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL2_2D;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -231,7 +231,7 @@ static inline int pulp_cl_idma_L1ToL2_2d(iDMA_transfer transfer) {
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L2ToL1_2d(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L2ToL1_2d(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L2TOL1_2D;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -247,7 +247,7 @@ static inline int pulp_cl_idma_L2ToL1_2d(iDMA_transfer transfer) {
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L1ToL1_2d(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L1ToL1_2d(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL1_2D;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -265,7 +265,7 @@ static inline int pulp_cl_idma_L1ToL1_2d(iDMA_transfer transfer) {
 
 // 3D TRANSFERS
 
-static inline int pulp_cl_idma_L1ToL2_3d(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L1ToL2_3d(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL2_3D;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -284,7 +284,7 @@ static inline int pulp_cl_idma_L1ToL2_3d(iDMA_transfer transfer) {
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L2ToL1_3d(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L2ToL1_3d(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L2TOL1_3D;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -303,7 +303,7 @@ static inline int pulp_cl_idma_L2ToL1_3d(iDMA_transfer transfer) {
   return dma_tx_id;
 }
 
-static inline int pulp_cl_idma_L1ToL1_3d(iDMA_transfer transfer) {
+static inline int pulp_cl_idma_L1ToL1_3d(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL1_3D;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -319,6 +319,18 @@ static inline int pulp_cl_idma_L1ToL1_3d(iDMA_transfer transfer) {
 
   asm volatile("" : : : "memory");
   dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_1_REG_OFFSET);
+  return dma_tx_id;
+}
+
+// READ TRANSFER ID FUNCTIONS
+
+static inline unsigned int pulp_cl_idma_get_id_to_L1() {
+  unsigned int dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_1_REG_OFFSET);
+  return dma_tx_id;
+}
+
+static inline unsigned int pulp_cl_idma_get_id_to_L2() {
+  unsigned int dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_0_REG_OFFSET);
   return dma_tx_id;
 }
 
