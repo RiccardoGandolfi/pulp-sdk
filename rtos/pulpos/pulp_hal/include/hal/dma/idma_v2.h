@@ -325,12 +325,12 @@ static inline int pulp_cl_idma_L1ToL1_3d(DMA_copy transfer) {
 // READ TRANSFER ID FUNCTIONS
 
 static inline unsigned int pulp_cl_idma_get_id_to_L1() {
-  unsigned int dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_1_REG_OFFSET);
+  unsigned int dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_DONE_ID_1_REG_OFFSET);
   return dma_tx_id;
 }
 
 static inline unsigned int pulp_cl_idma_get_id_to_L2() {
-  unsigned int dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_NEXT_ID_0_REG_OFFSET);
+  unsigned int dma_tx_id = DMA_CL_READ(IDMA_REG32_3D_DONE_ID_0_REG_OFFSET);
   return dma_tx_id;
 }
 
