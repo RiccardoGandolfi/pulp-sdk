@@ -29,6 +29,7 @@ typedef struct {
   unsigned int dst_stride_3d;
   unsigned int num_reps_2d;
   unsigned int num_reps_3d;
+  unsigned int tid;
 } DMA_copy;
 
 #define IDMA_DEFAULT_CONFIG 0x0
@@ -169,6 +170,7 @@ static inline unsigned int plp_cl_dma_status_toL2();
 // 1D TRANSFERS
 
 static inline int pulp_cl_idma_L1ToL2(DMA_copy transfer) {
+  printf ("Transfer to configure: dst: 0x%8x | src: 0x%8x | size: 0x%8x \n", transfer.dst, transfer.src, transfer. size);
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL2;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -182,7 +184,6 @@ static inline int pulp_cl_idma_L1ToL2(DMA_copy transfer) {
 
   return dma_tx_id;
 }
-
 static inline int pulp_cl_idma_L2ToL1(DMA_copy transfer) {
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L2TOL1;
