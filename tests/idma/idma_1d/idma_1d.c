@@ -11,6 +11,9 @@ uint32_t l1_dst_addr[8] = {0};
 int idma_1D (uint32_t size, int core_id, int ext2loc, int loc2loc) {
     int error = 0;
     volatile uint8_t *src_ptr, *dst_ptr;
+    DMA_copy transfer;
+
+    unsigned int tx_id;
 
     if (loc2loc == 1) {
         // L1 to L1 transfer
@@ -30,12 +33,22 @@ int idma_1D (uint32_t size, int core_id, int ext2loc, int loc2loc) {
         src_ptr[i] = (uint8_t)(i & 0xFF);
     }
 
+    transfer.src = (unsigned int) src_ptr;
+    transfer.dst = (unsigned int) dst_ptr;
+    transfer.size = size;
+
+    PRINTF ("Core[%d]: Launching 1D transfer with parameters --> src: 0x%8x | dst: 0x%8x | size: %d \n", core_id, transfer.src, transfer.dst, transfer.size);
+
     if (loc2loc == 1) {
-        plp_cl_dma_wait_toL1(pulp_cl_idma_L1ToL1((unsigned int) src_ptr, (unsigned int) dst_ptr, size));
+        plp_cl_dma_wait_toL1(pulp_cl_idma_L1ToL1(transfer));
     } else if (ext2loc == 1) {
-        plp_cl_dma_wait_toL1(pulp_cl_idma_L2ToL1((unsigned int) src_ptr, (unsigned int) dst_ptr, size));
+        tx_id = pulp_cl_idma_get_id_to_L1();
+        PRINTF ("Reading %d to L1\n", tx_id);
+        plp_cl_dma_wait_toL1(pulp_cl_idma_L2ToL1(transfer));
     } else {
-        plp_cl_dma_wait_toL2(pulp_cl_idma_L1ToL2((unsigned int) src_ptr, (unsigned int) dst_ptr, size));
+        tx_id = pulp_cl_idma_get_id_to_L2();
+        PRINTF ("Reading %d to L2\n", tx_id);
+        plp_cl_dma_wait_toL2(pulp_cl_idma_L1ToL2(transfer));
     }
 
     // Check the results
@@ -70,7 +83,6 @@ void idma_task() {
         #else
         size = sizes[k];
         #endif
-        PRINTF ("Transfer %d with size %d \n", k, size);
         // L1 -> L2
         glob_errors += idma_1D(size, pi_core_id(), 0, 0);
         // L2 -> L1
