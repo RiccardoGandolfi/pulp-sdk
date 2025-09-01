@@ -2,6 +2,8 @@
 #define __CL_IDMA_H__
 
 #include "archi/dma/idma_v2.h"
+#include "hal/eu/eu_v3.h"
+#include <stdio.h>
 #include "archi/chips/pulp/memory_map.h"
 
 // Some definitions for iDMA
@@ -29,6 +31,7 @@ typedef struct {
   unsigned int dst_stride_3d;
   unsigned int num_reps_2d;
   unsigned int num_reps_3d;
+  unsigned int direction;
   unsigned int tid;
 } DMA_copy;
 
@@ -48,6 +51,8 @@ typedef struct {
 #define IDMA_DEFAULT_CONFIG_L1TOL1_3D (IDMA_DEFAULT_CONFIG_3D | (IDMA_PROT_OBI << IDMA_REG32_3D_CONF_SRC_PROTOCOL_OFFSET) | (IDMA_PROT_OBI << IDMA_REG32_3D_CONF_DST_PROTOCOL_OFFSET))
 
 // Configurations
+
+static void pulp_cl_idma_transfer(DMA_copy transfer);
 
 // 1D Transfers
 /** Memory transfer with event-based completion.
@@ -169,8 +174,18 @@ static inline unsigned int plp_cl_dma_status_toL2();
 
 // 1D TRANSFERS
 
+static void pulp_cl_idma_transfer(DMA_copy transfer) {
+  if (transfer.direction == 1) {
+    // printf ("Transfer to L1 \n");
+    plp_cl_dma_wait_toL1(pulp_cl_idma_L2ToL1(transfer));
+  } else {
+    // printf ("Transfer to L2 \n");
+    plp_cl_dma_wait_toL2(pulp_cl_idma_L1ToL2(transfer));
+  }
+}
+
 static inline int pulp_cl_idma_L1ToL2(DMA_copy transfer) {
-  printf ("Transfer to configure: dst: 0x%8x | src: 0x%8x | size: 0x%8x \n", transfer.dst, transfer.src, transfer. size);
+  // printf ("Transfer to configure: dst: 0x%8x | src: 0x%8x | size: %d \n", transfer.dst, transfer.src, transfer. size);
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L1TOL2;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -185,6 +200,7 @@ static inline int pulp_cl_idma_L1ToL2(DMA_copy transfer) {
   return dma_tx_id;
 }
 static inline int pulp_cl_idma_L2ToL1(DMA_copy transfer) {
+  // printf ("Transfer to configure: dst: 0x%8x | src: 0x%8x | size: %d \n", transfer.dst, transfer.src, transfer. size);
   unsigned int dma_tx_id;
   unsigned int cfg = IDMA_DEFAULT_CONFIG_L2TOL1;
   DMA_CL_WRITE(transfer.src, IDMA_REG32_3D_SRC_ADDR_LOW_REG_OFFSET);
@@ -359,6 +375,7 @@ static inline unsigned int pulp_cl_idma_tx_cplt_toL2(unsigned int dma_tx_id) {
 
 static inline void plp_cl_dma_wait_toL1(unsigned int dma_tx_id) {
   while(!pulp_cl_idma_tx_cplt_toL1(dma_tx_id)) {
+    // printf ("Waiting for transfer towards L1 to finish \n");
     eu_evt_maskWaitAndClr(1 << IDMA_EVENT);
   }
   return;
@@ -372,6 +389,7 @@ static inline void plp_cl_dma_barrier_toL1() {
 
 static inline void plp_cl_dma_wait_toL2(unsigned int dma_tx_id) {
   while(!pulp_cl_idma_tx_cplt_toL2(dma_tx_id)) {
+    // printf ("Waiting for transfer towards L2 to finish \n");
     eu_evt_maskWaitAndClr(1 << IDMA_EVENT);
   }
   return;
