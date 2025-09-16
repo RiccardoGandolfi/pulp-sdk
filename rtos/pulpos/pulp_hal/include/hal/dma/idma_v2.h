@@ -129,23 +129,26 @@ static inline unsigned int plp_cl_dma_status_toL2();
 #endif
 #define DMA_ADDR ARCHI_IDMA_EXT_ADDR
 
-#if defined(__riscv__) && !defined(RV_ISA_RV32) && !defined(__LLVM__)
-#define IDMA_WRITE(value, offset) __builtin_pulp_OffsetedWrite((value), (int *)DMA_ADDR, (offset))
-#define IDMA_READ(offset) __builtin_pulp_OffsetedRead((int *)DMA_ADDR, (offset))
-#ifdef ARCHI_HAS_DMA_DEMUX
-#define DMA_CL_WRITE(value, offset) __builtin_pulp_OffsetedWrite((value), (int *)DMA_DEMUX_ADDR, (offset))
-#define DMA_CL_READ(offset) __builtin_pulp_OffsetedRead((int *)DMA_DEMUX_ADDR, (offset))
-#endif
-#else
-#define IDMA_WRITE(value, offset) pulp_write32(DMA_ADDR + (offset), (value))
-#define IDMA_READ(offset) pulp_read32(DMA_ADDR + (offset))
-#define DMA_CL_WRITE(value, offset) IDMA_WRITE(value, offset)
-#define DMA_CL_READ(offset) IDMA_READ(offset)
-#ifdef ARCHI_HAS_DMA_DEMUX
+// #if defined(__riscv__) && !defined(RV_ISA_RV32) && !defined(__LLVM__)
+// #define IDMA_WRITE(value, offset) __builtin_pulp_OffsetedWrite((value), (int *)DMA_ADDR, (offset))
+// #define IDMA_READ(offset) __builtin_pulp_OffsetedRead((int *)DMA_ADDR, (offset))
+// #ifdef ARCHI_HAS_DMA_DEMUX
+// #define DMA_CL_WRITE(value, offset) __builtin_pulp_OffsetedWrite((value), (int *)DMA_DEMUX_ADDR, (offset))
+// #define DMA_CL_READ(offset) __builtin_pulp_OffsetedRead((int *)DMA_DEMUX_ADDR, (offset))
+// #endif
+// #else
+// #define IDMA_WRITE(value, offset) pulp_write32(DMA_ADDR + (offset), (value))
+// #define IDMA_READ(offset) pulp_read32(DMA_ADDR + (offset))
+// #define DMA_CL_WRITE(value, offset) IDMA_WRITE(value, offset)
+// #define DMA_CL_READ(offset) IDMA_READ(offset)
+// #ifdef ARCHI_HAS_DMA_DEMUX
+// #define DMA_CL_WRITE(value, offset) pulp_write32(DMA_DEMUX_ADDR + (offset), (value))
+// #define DMA_CL_READ(offset) pulp_read32(DMA_DEMUX_ADDR + (offset))
+// #endif
+// #endif
+
 #define DMA_CL_WRITE(value, offset) pulp_write32(DMA_DEMUX_ADDR + (offset), (value))
 #define DMA_CL_READ(offset) pulp_read32(DMA_DEMUX_ADDR + (offset))
-#endif
-#endif
 
 // if we don't have the peripheral demux, the cluster write/read functions are equal to the regular versions
 #ifndef ARCHI_HAS_DMA_DEMUX
@@ -341,7 +344,6 @@ static inline void plp_cl_dma_wait_toL1(unsigned int dma_tx_id) {
 
 static inline void plp_cl_dma_barrier_toL1() {
   while(plp_cl_dma_status_toL1()) {
-    printf ("Waiting inside barrier towards L1 \n");
     eu_evt_maskWaitAndClr(1 << IDMA_EVENT);
   }
 }
@@ -355,7 +357,6 @@ static inline void plp_cl_dma_wait_toL2(unsigned int dma_tx_id) {
 
 static inline void plp_cl_dma_barrier_toL2() {
   while(plp_cl_dma_status_toL2()) {
-    printf ("Waiting inside barrier towards L2 \n");
     eu_evt_maskWaitAndClr(1 << IDMA_EVENT);
   }
 }
@@ -371,19 +372,14 @@ static inline unsigned int plp_cl_dma_status_toL2() {
 }
 
 static inline void pulp_idma_transfer_1d_and_wait(unsigned int direction, unsigned int ext, unsigned int loc, unsigned short size) {
-  #if ARCHI_HAS_DMA_DEMUX
-    printf ("ARCHI HAS DMA DEMUX \n");
-  #endif
   if (direction == 1) {
     // L2 to L1
     // printf ("Transfer from L2 to L1 with: src: 0x%8x dst: 0x%8x size: %d \n", ext, loc, size);
-    // plp_cl_dma_wait_toL1(pulp_cl_idma_L2ToL1(ext, loc, size));
     pulp_cl_idma_L2ToL1(ext, loc, size);
     plp_cl_dma_barrier_toL1();
   } else {
     // L1 to L2
     // printf ("Transfer from L1 to L2 with: src: 0x%8x dst: 0x%8x size: %d \n", loc, ext, size);
-    // plp_cl_dma_wait_toL2(pulp_cl_idma_L1ToL2(loc, ext, size));
     pulp_cl_idma_L1ToL2(loc, ext, size);
     plp_cl_dma_barrier_toL2();
   }
