@@ -3,10 +3,10 @@ OUTPUT_ARCH(riscv)
 ENTRY( _start )
 MEMORY
 {
-  L2           : ORIGIN = 0x1c000004, LENGTH = 0x0007fffc
-  L2_aliased   : ORIGIN = 0x00000004, LENGTH = 0x00003ffc
-  L1                 : ORIGIN = 0x10000004, LENGTH = 0x0000fffc
-  L1_aliased         : ORIGIN = 0x00000004, LENGTH = 0x0000fffc
+  L2           : ORIGIN = 0x1c000004, LENGTH = 0x001ffffc
+  L2_aliased   : ORIGIN = 0x00000004, LENGTH = 0x0003fffc
+  L1           : ORIGIN = 0x10000004, LENGTH = 0x0003fffc
+  L1_aliased   : ORIGIN = 0x00000004, LENGTH = 0x0003fffc
 }
 
 /*
@@ -32,12 +32,13 @@ SECTIONS
   /* This section is for tiny FC data which benefits 
    * from the alias at 0
    */
+
   .data_tiny_fc :
   {
     . = ALIGN(4);
     *(.data_tiny_fc)
     *(.data_tiny_fc.*)
-  } > L2_aliased AT> L2
+  } > L2
 
 
   .init :
