@@ -2,7 +2,7 @@
 #define __CL_IDMA_H__
 
 #include "archi/dma/idma_v2.h"
-#include "archi/chips/pulp/memory_map.h"
+// #include "archi/chips/pulp/memory_map.h"
 #include <stdio.h>
 
 // Some definitions for iDMA
